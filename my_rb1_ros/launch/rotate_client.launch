@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node pkg ="my_rb1_ros"
+        type="rotate_client"
+        name="rotate_client_demo"
+        output="screen">
+  </node>
+
+
+</launch>

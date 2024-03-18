@@ -1,0 +1,3 @@
+int32 degrees    # Rotation Degree 
+---
+string result        # Result of rotation
