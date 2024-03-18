@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   ros::ServiceClient moverb1_service =
       nh.serviceClient<my_rb1_ros::Rotate>("/rotate_robot");
   my_rb1_ros::Rotate srv; // Create an object of type TrajByName
-  srv.request.degrees = 12;
+  srv.request.degrees = 90;
 
   if (moverb1_service.call(srv)) // Send through the connection the name of
                                  // the trajectory to execute
