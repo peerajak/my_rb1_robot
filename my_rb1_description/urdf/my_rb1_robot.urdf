@@ -8,16 +8,16 @@
         <material>Gazebo/Green</material>
     </gazebo>
     <gazebo reference="link_front_caster_wheel">
-        <material>Gazebo/White</material>
+        <material>Gazebo/Grey</material>
     </gazebo>
     <gazebo reference="link_back_caster_wheel">
-        <material>Gazebo/White</material>
+        <material>Gazebo/Grey</material>
     </gazebo>
     <gazebo reference="link_left_wheel">
-        <material>Gazebo/White</material>
+        <material>Gazebo/Grey</material>
     </gazebo>
     <gazebo reference="link_right_wheel">
-        <material>Gazebo/White</material>
+        <material>Gazebo/Grey</material>
     </gazebo> 
 
 <!-- Done The robot is a cilinder 50 cm in diameter and 30 cm in height-->
@@ -246,7 +246,7 @@ Done front_laser
 
    <!-- Joint - chassis / base_link -->
 <joint name="joint_chassis_base_link" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 -0.15" />
+    <origin rpy="0 0 0" xyz="0 0 0" />
     <child link="link_base_link" />
     <parent link="link_chassis" />
     <axis rpy="0 0 0" xyz="0 1 0" />
