@@ -2,18 +2,23 @@
 
 <robot name="robot">
 
-    <material name="blue">
-        <color rgba="0 0 0.9 1"/>
-    </material>
-      
-    <material name="black">
-        <color rgba="0 0 0 1"/>
-    </material>
     
-    <material name="white">
-       <color rgba="1 1 1 1"/>
-    </material>
-   
+
+      <gazebo reference="link_chassis">
+        <material>Gazebo/Green</material>
+    </gazebo>
+    <gazebo reference="link_front_caster_wheel">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <gazebo reference="link_back_caster_wheel">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <gazebo reference="link_left_wheel">
+        <material>Gazebo/White</material>
+    </gazebo>
+    <gazebo reference="link_right_wheel">
+        <material>Gazebo/White</material>
+    </gazebo> 
 
 <!-- Done The robot is a cilinder 50 cm in diameter and 30 cm in height-->
 <!-- Done Has 2 wheels of 5 cm diameter on each side of the base. One at (0.0, -0.2, -0.15) from the base_link and another at (0.0, 0.2, -0.15).-->
@@ -34,9 +39,9 @@ Done front_laser
     <!-- Link - chassis -->
     <link name="link_chassis">
         <inertial>
-            <mass value="10" />
+            <mass value="19.5" />
             <origin xyz="0 0 0.3" rpy="0 0 0" />
-            <inertia ixx="1.5417" ixy="0" ixz="0" iyy="3.467" iyz="0" izz="4.742" />
+            <inertia ixx="0.0304" ixy="0" ixz="0" iyy="0" iyz="0" izz="4.742" />
         </inertial>
 
 
@@ -50,7 +55,9 @@ Done front_laser
             <geometry>
                 <cylinder length="0.3" radius="0.25" />
             </geometry>
-            <material name="blue"/>
+            <material name="Green">
+                <color rgba="0.0 1.0 0.0 1" />
+            </material>
         </visual>
     </link>
 
@@ -68,8 +75,8 @@ Done front_laser
 <link name="link_right_wheel">
     <inertial>
         <mass value="1" />
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <inertia ixx="0.002526666666667" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
+        <origin rpy="1.5707 0 0" xyz="0 0 0" />
+        <inertia ixx="0.000001567" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
     </inertial>
 
     <collision>
@@ -84,7 +91,9 @@ Done front_laser
         <geometry>           
             <cylinder length="0.01" radius="0.025" />           
         </geometry>
-        <material name="white"/>
+           <material name="white">
+       <color rgba="1 1 1 1"/>
+    </material>
     </visual>
 
 </link> 
@@ -103,23 +112,25 @@ Done front_laser
 <link name="link_left_wheel">
     <inertial>
         <mass value="1" />
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <inertia ixx="0.002526666666667" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
+        <origin rpy="1.5707 0 0" xyz="0 0 0" />
+        <inertia ixx="0.000001567" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
     </inertial>
 
     <collision>
-        <origin rpy="1.5707 0 0" xyz="0 0 0" />
+            <origin rpy="1.5707 0 0" xyz="0 0 0" />
         <geometry>
                 <cylinder length="0.01" radius="0.025" />
         </geometry>
     </collision>
 
     <visual>
-        <origin rpy="1.5707 0 0" xyz="0 0 0" />
+            <origin rpy="1.5707 0 0" xyz="0 0 0" />
         <geometry>           
             <cylinder length="0.01" radius="0.025" />           
         </geometry>
-        <material name="white"/>
+           <material name="white">
+       <color rgba="1 1 1 1"/>
+    </material>
     </visual>
 
 </link> 
@@ -127,7 +138,7 @@ Done front_laser
 
 
     <!-- Joint - chassis / caster wheel1 -->
-<joint name="joint_chassis_front_caster_wheel" type="continuous">
+<joint name="joint_chassis_front_caster_wheel" type="fixed">
     <origin rpy="0 0 0" xyz="-0.1 0.0 -0.15" />
     <child link="link_front_caster_wheel" />
     <parent link="link_chassis" />
@@ -141,7 +152,7 @@ Done front_laser
     <inertial>
         <mass value="1" />
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <inertia ixx="0.002526666666667" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
+        <inertia ixx="0.000002666" ixy="0" ixz="0" iyy="0" iyz="0" izz="0.0"/>
     </inertial>
 
          <!-- Caster wheel support -->
@@ -156,7 +167,9 @@ Done front_laser
             <geometry>
                 <sphere radius="0.02" />
             </geometry>
-            <material name="blue"/>
+                <material name="blue">
+        <color rgba="0 0 0.9 1"/>
+    </material>
         </visual>
          <!-- Caster wheel -->
     <collision>
@@ -170,13 +183,15 @@ Done front_laser
             <geometry>
                 <sphere radius="0.0125" />
             </geometry>
-            <material name="white"/>
+                <material name="white">
+       <color rgba="1 1 1 1"/>
+    </material>
     </visual>
 </link>
 
 
     <!-- Joint - chassis / caster wheel2 -->
-<joint name="joint_chassis_back_caster_wheel" type="continuous">
+<joint name="joint_chassis_back_caster_wheel" type="fixed">
     <origin rpy="0 0 0" xyz="0.1 0.0 -0.15" />
     <child link="link_back_caster_wheel" />
     <parent link="link_chassis" />
@@ -190,7 +205,7 @@ Done front_laser
     <inertial>
         <mass value="1" />
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <inertia ixx="0.002526666666667" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
+        <inertia ixx="0.000002666" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
 
         <!-- Caster wheel support -->
@@ -205,7 +220,9 @@ Done front_laser
             <geometry>
                 <sphere radius="0.02" />
             </geometry>
-            <material name="blue"/>
+                <material name="blue">
+        <color rgba="0 0 0.9 1"/>
+    </material>
         </visual>
  
          <!-- Caster wheel -->
@@ -220,13 +237,15 @@ Done front_laser
             <geometry>
                 <sphere radius="0.0125" />
             </geometry>
-            <material name="white"/>
+                <material name="white">
+       <color rgba="1 1 1 1"/>
+    </material>
     </visual>
 </link>
 
 
    <!-- Joint - chassis / base_link -->
-<joint name="joint_chassis_base_link" type="continuous">
+<joint name="joint_chassis_base_link" type="fixed">
     <origin rpy="0 0 0" xyz="0 0 -0.15" />
     <child link="link_base_link" />
     <parent link="link_chassis" />
@@ -238,19 +257,17 @@ Done front_laser
 <link name="link_base_link">
     <inertial>
         <mass value="1" />
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <inertia ixx="0.002526666666667" ixy="0" ixz="0" iyy="0.002526666666667" iyz="0" izz="0.005"/>
+	    <origin rpy="1.5707 0 0" xyz="0 0 0" />
+        <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
 
     <collision>
-	    <origin rpy="1.5707 0 0" xyz="0 0 0" />
 	    <geometry>
 			<box size="0 0 0"/>
 	    </geometry>
     </collision>
 
     <visual>
-        <origin rpy="1.5707 0 0" xyz="0 0 0" />
 	    <geometry>
 			<box size="0 0 0"/>
 	    </geometry>
@@ -267,12 +284,11 @@ Done front_laser
 </joint>
 <link name="link_front_laser">
     <inertial>
-        <origin xyz="0 0 0" rpy="1.5707 0 0" />
+        <origin xyz="0 0 0" rpy="3.14 0 0" />
         <mass value="0.5" />
-        <inertia ixx="0.000252666666667" ixy="0" ixz="0" iyy="0.000252666666667" iyz="0" izz="0.0005"/>
+        <inertia ixx="0.00000455625" ixy="0" ixz="0" iyy="0.000252666666667" iyz="0" izz="0.0005"/>
     </inertial>
     <visual>
-        <origin xyz="0 0 0" rpy="1.5707 0 0" />
         <geometry>
             <cylinder radius="0.045" length="0.040"/>
         </geometry>
@@ -281,7 +297,6 @@ Done front_laser
         </material>
     </visual>
     <collision>
-        <origin xyz="0 0 0" rpy="1.5707 0 0"/>
         <geometry>
             <cylinder radius="0.045" length="0.040"/>
         </geometry>
@@ -335,5 +350,6 @@ Done front_laser
             <frameName>sensor_laser</frameName>
         </plugin>
     </sensor>
+    <material>Gazebo/Red</material>
 </gazebo>
 </robot>
