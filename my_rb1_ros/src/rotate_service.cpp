@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     ling.linear.z = 0;
     ling.angular.x = 0;
     ling.angular.y = 0;
-    ling.angular.z = 0.5 * target_yaw_rad;
+    ling.angular.z = -0.5 * target_yaw_rad;
 
     pub.publish(ling);
     ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
