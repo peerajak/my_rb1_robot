@@ -4,7 +4,7 @@
 
 	<!-- roslaunch arguments --> 
 	<arg name="debug" default="false"/>
-	<arg name="world_name" default="$(find rb1_base_gazebo)/worlds/ros2_online_workshop.world"/>
+	<arg name="world_name" default="$(find my_rb1_gazebo)/world/my_world.world"/>
 
 	<!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
 	<include file="$(find gazebo_ros)/launch/empty_world.launch">
