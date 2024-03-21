@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Twist.h>
+#include <signal.h>
 #include <tf/tf.h>
 
 // Import the service message header file generated from the Empty.srv message
@@ -15,7 +16,7 @@ bool rotate_complete = false;
 geometry_msgs::Twist ling;
 ros::Publisher pub;
 bool startstop = true;
-double const pi = 3.14;
+const double pi = 3.14;
 
 double RadianSimplestForm(double rad) {
   double _rad;
@@ -38,15 +39,39 @@ double RadianSimplestForm(double rad) {
 bool my_callback(my_rb1_ros::Rotate::Request &req,
                  my_rb1_ros::Rotate::Response &res) {
   ROS_INFO("Request Data==> degree=%d", req.degrees);
-  bool ret = true;
+  ros::Rate loop_rate(2);
   if (req.degrees > 180 || req.degrees < -180) {
     res.result = "Service failed: The range of degree is between -180 to 180";
-    ret = false;
   } else {
     raw_req_degree = req.degrees;
     req_yaw_rad = RadianSimplestForm(req.degrees * pi / 180 + yaw_rad);
-    res.result = "Service Success";
-    ret = true;
+    unsigned int timeout_counter = 0, max_timeout_counter = 500;
+    do {
+      target_yaw_rad = req_yaw_rad - yaw_rad;
+      if (abs(target_yaw_rad) > pi) {
+        ROS_INFO("yaw_rad limit reached");
+        target_yaw_rad =
+            raw_req_degree / abs(raw_req_degree) * abs(target_yaw_rad);
+      }
+
+      ling.linear.x = 0;
+      ling.linear.y = 0;
+      ling.linear.z = 0;
+      ling.angular.x = 0;
+      ling.angular.y = 0;
+      ling.angular.z = 0.25 * target_yaw_rad;
+
+      pub.publish(ling);
+      ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
+               yaw_rad);
+      rotate_complete = true;
+      ros::spinOnce();
+      loop_rate.sleep();
+      timeout_counter++;
+    } while (abs(target_yaw_rad) > 0.001 and
+             timeout_counter <= max_timeout_counter);
+    res.result =
+        abs(target_yaw_rad) <= 0.001 ? "Service Success" : "Service Failed";
   }
   return true;
 }
@@ -78,6 +103,11 @@ void setStopMovement() {
   ling.angular.z = 0;
 }
 
+void mySigintHandler(int sig) {
+  ROS_INFO("/rotate_robot service stopped");
+  ros::shutdown();
+}
+
 int main(int argc, char **argv) {
   ros::init(argc, argv, "my_rb1_service_server");
   ros::NodeHandle nh;
@@ -88,29 +118,18 @@ int main(int argc, char **argv) {
       my_callback); // create the Service called // my_service
                     // with the defined // callback
   ros::Rate loop_rate(2);
-
-  while (ros::ok()) {
-    target_yaw_rad = req_yaw_rad - yaw_rad;
-    if (abs(target_yaw_rad) > pi) {
-      ROS_INFO("yaw_rad limit reached");
-      target_yaw_rad =
-          raw_req_degree / abs(raw_req_degree) * abs(target_yaw_rad);
-    }
-    ling.linear.x = 0;
-    ling.linear.y = 0;
-    ling.linear.z = 0;
-    ling.angular.x = 0;
-    ling.angular.y = 0;
-    ling.angular.z = 0.25 * target_yaw_rad;
-
-    pub.publish(ling);
-    ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
-             yaw_rad);
-    ros::spinOnce();
-    setStopMovement();
-    rotate_complete = true;
-    loop_rate.sleep();
-  }
+  signal(SIGINT, mySigintHandler);
+  ROS_INFO("/rotate_robot service started");
+  ros::spin();
+  // while (ros::ok()) {
+  // ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
+  // yaw_rad);
+  // ros::spinOnce();
+  // setStopMovement();
+  // rotate_complete = true;
+  // loop_rate.sleep();
+  //}
+  ROS_INFO("/rotate_robot service stopped");
 
   return 0;
 }
