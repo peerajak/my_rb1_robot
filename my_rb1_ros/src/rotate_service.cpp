@@ -9,20 +9,45 @@
 #include <tf/tf.h>
 
 // Import the service message header file generated from the Empty.srv message
-double yaw_rad = 0., pitch_rad = 0., roll_rad = 0., req_yaw_rad = 0.,
-       target_yaw_rad = 0.;
+double raw_req_degree = 0, yaw_rad = 0., pitch_rad = 0., roll_rad = 0.,
+       req_yaw_rad = 0., target_yaw_rad = 0.;
 bool rotate_complete = false;
 geometry_msgs::Twist ling;
 ros::Publisher pub;
 bool startstop = true;
+double const pi = 3.14;
+
+double RadianSimplestForm(double rad) {
+  double _rad;
+  if (rad >= 0) {
+    int nearest_smaller_mulitple_of_round = rad / (2 * pi);
+    _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
+    if (_rad > pi)
+      _rad = _rad - 2 * pi;
+
+  } else {
+    int nearest_smaller_mulitple_of_round = rad / (2 * pi);
+    _rad = rad + double(nearest_smaller_mulitple_of_round) * 2 * pi;
+    if (-1 * _rad > pi)
+      _rad = 2 * pi + _rad;
+  }
+  return _rad;
+}
 
 // We define the callback function of the service
 bool my_callback(my_rb1_ros::Rotate::Request &req,
                  my_rb1_ros::Rotate::Response &res) {
   ROS_INFO("Request Data==> degree=%d", req.degrees);
-  req_yaw_rad = -req.degrees * 3.14 / 180;
-  rotate_complete = false;
-  res.result = "Success";
+  bool ret = true;
+  if (req.degrees > 180 || req.degrees < -180) {
+    res.result = "Service failed: The range of degree is between -180 to 180";
+    ret = false;
+  } else {
+    raw_req_degree = req.degrees;
+    req_yaw_rad = RadianSimplestForm(req.degrees * pi / 180 + yaw_rad);
+    res.result = "Service Success";
+    ret = true;
+  }
   return true;
 }
 
@@ -65,13 +90,18 @@ int main(int argc, char **argv) {
   ros::Rate loop_rate(2);
 
   while (ros::ok()) {
-    target_yaw_rad = req_yaw_rad + yaw_rad;
+    target_yaw_rad = req_yaw_rad - yaw_rad;
+    if (abs(target_yaw_rad) > pi) {
+      ROS_INFO("yaw_rad limit reached");
+      target_yaw_rad =
+          raw_req_degree / abs(raw_req_degree) * abs(target_yaw_rad);
+    }
     ling.linear.x = 0;
     ling.linear.y = 0;
     ling.linear.z = 0;
     ling.angular.x = 0;
     ling.angular.y = 0;
-    ling.angular.z = -0.5 * target_yaw_rad;
+    ling.angular.z = 0.25 * target_yaw_rad;
 
     pub.publish(ling);
     ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
