@@ -40,6 +40,7 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
                  my_rb1_ros::Rotate::Response &res) {
   ROS_INFO("Request Data==> degree=%d", req.degrees);
   ros::Rate loop_rate(2);
+  const double threshold = 0.01;
   if (req.degrees > 180 || req.degrees < -180) {
     res.result = "Service failed: The range of degree is between -180 to 180";
   } else {
@@ -59,7 +60,7 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
       ling.linear.z = 0;
       ling.angular.x = 0;
       ling.angular.y = 0;
-      ling.angular.z = 0.25 * target_yaw_rad;
+      ling.angular.z = 0.5 * target_yaw_rad;
 
       pub.publish(ling);
       ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
@@ -68,10 +69,10 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
       ros::spinOnce();
       loop_rate.sleep();
       timeout_counter++;
-    } while (abs(target_yaw_rad) > 0.001 and
+    } while (abs(target_yaw_rad) > threshold and
              timeout_counter <= max_timeout_counter);
     res.result =
-        abs(target_yaw_rad) <= 0.001 ? "Service Success" : "Service Failed";
+        abs(target_yaw_rad) <= threshold ? "Service Success" : "Service Failed";
   }
   return true;
 }
