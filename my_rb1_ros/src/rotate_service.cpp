@@ -10,69 +10,90 @@
 #include <tf/tf.h>
 
 // Import the service message header file generated from the Empty.srv message
-double raw_req_degree = 0, yaw_rad = 0., pitch_rad = 0., roll_rad = 0.,
-       req_yaw_rad = 0., target_yaw_rad = 0.;
+double yaw_rad = 0., pitch_rad = 0., roll_rad = 0., req_yaw_rad = 0.,
+       target_yaw_rad = 0.;
 bool rotate_complete = false;
 geometry_msgs::Twist ling;
 ros::Publisher pub;
 bool startstop = true;
 const double pi = 3.14;
 
-double RadianSimplestForm(double rad) {
-  double _rad;
-  if (rad >= 0) {
-    int nearest_smaller_mulitple_of_round = rad / (2 * pi);
-    _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
-    if (_rad > pi)
-      _rad = _rad - 2 * pi;
+struct Radian {
+  double _rad, _additional_rad; // range 0 to 2pi
+  double const pi = 3.14;
+  Radian(double rad) : _additional_rad(0) {
+    if (rad < 0) {
+      int nearest_greater_mulitple_of_round = (-1 * rad) / (2 * pi) + 1;
+      _rad = rad + double(nearest_greater_mulitple_of_round) * 2 * pi;
 
-  } else {
-    int nearest_smaller_mulitple_of_round = rad / (2 * pi);
-    _rad = rad + double(nearest_smaller_mulitple_of_round) * 2 * pi;
-    if (-1 * _rad > pi)
-      _rad = 2 * pi + _rad;
+    } else {
+      int nearest_smaller_mulitple_of_round = (1 * rad) / (2 * pi);
+      _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
+    }
   }
-  return _rad;
-}
+
+  double get_position() { return _rad + _additional_rad; }
+
+  double operator-(Radian const &obj) {
+    _additional_rad = -obj._rad;
+    return get_position();
+  }
+
+  double operator+(Radian const &obj) {
+    _additional_rad = obj._rad;
+    return get_position();
+  }
+};
 
 // We define the callback function of the service
 bool my_callback(my_rb1_ros::Rotate::Request &req,
                  my_rb1_ros::Rotate::Response &res) {
   ROS_INFO("Request Data==> degree=%d", req.degrees);
   ros::Rate loop_rate(2);
-  const double threshold = 0.005;
-  if (req.degrees > 180 || req.degrees < -180) {
-    res.result = "Service failed: The range of degree is between -180 to 180";
+  const double threshold = 0.001;
+  if (req.degrees > 360 || req.degrees < -360) {
+    res.result = "Service failed: The range of degree is between -360 to 360";
   } else {
-    raw_req_degree = req.degrees;
-    req_yaw_rad = RadianSimplestForm(req.degrees * pi / 180 + yaw_rad);
-    unsigned int timeout_counter = 0, max_timeout_counter = 500;
+
+    Radian R_yaw_rad(yaw_rad);
+    Radian R_raw_req_yaw_rad(req.degrees * pi / 180);
+    req_yaw_rad = R_raw_req_yaw_rad + R_yaw_rad;
+    Radian R_req_yaw_rad(req_yaw_rad);
+
+    unsigned int timeout_counter = 0, max_timeout_counter = 50;
+    double target_yaw_rad_temp;
     do {
-      target_yaw_rad = req_yaw_rad - yaw_rad;
-      if (abs(target_yaw_rad) > pi) {
-        ROS_INFO("yaw_rad limit reached");
-        target_yaw_rad =
-            raw_req_degree / abs(raw_req_degree) * abs(target_yaw_rad);
+      Radian R_yaw_rad_current(yaw_rad);
+      if (req.degrees > 0 && R_yaw_rad_current._rad > R_req_yaw_rad._rad) {
+        ROS_INFO("Add 2pi to req");
+        R_req_yaw_rad._rad += 2 * pi;
+      }
+      if (req.degrees < 0 && R_yaw_rad_current._rad < R_req_yaw_rad._rad) {
+        ROS_INFO("Remove 2pi from Req");
+        R_req_yaw_rad._rad -= 2 * pi;
       }
 
+      target_yaw_rad = R_req_yaw_rad - R_yaw_rad_current;
+      Radian R_target_yaw_rad(target_yaw_rad);
       ling.linear.x = 0;
       ling.linear.y = 0;
       ling.linear.z = 0;
       ling.angular.x = 0;
       ling.angular.y = 0;
-      ling.angular.z = 0.9 * target_yaw_rad;
+      ling.angular.z = 0.5 * R_target_yaw_rad._rad;
 
       pub.publish(ling);
-      ROS_INFO("request=%f target=%f current:%f", req_yaw_rad, target_yaw_rad,
-               yaw_rad);
-      rotate_complete = true;
+      ROS_INFO("request=%f.%f target=%f current:%f.%f", R_req_yaw_rad._rad,
+               R_req_yaw_rad._additional_rad, R_target_yaw_rad._rad,
+               R_yaw_rad_current._rad, R_yaw_rad_current._additional_rad);
       ros::spinOnce();
       loop_rate.sleep();
       timeout_counter++;
-    } while (abs(target_yaw_rad) > threshold and
+      target_yaw_rad_temp = R_target_yaw_rad._rad;
+    } while (abs(target_yaw_rad_temp) > threshold and
              timeout_counter <= max_timeout_counter);
-    res.result =
-        abs(target_yaw_rad) <= threshold ? "Service Success" : "Service Failed";
+    res.result = abs(target_yaw_rad_temp) <= threshold ? "Service Success"
+                                                       : "Service Failed";
   }
   return true;
 }
