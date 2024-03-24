@@ -7,23 +7,23 @@
     </gazebo>
     <gazebo reference="link_front_caster_wheel">
         <material>Gazebo/Grey</material>
-        <mu1>0.3</mu1>
-        <mu2>0.3</mu2>
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
     </gazebo>
     <gazebo reference="link_back_caster_wheel">
         <material>Gazebo/Grey</material>
-        <mu1>0.3</mu1>
-        <mu2>0.3</mu2>
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
     </gazebo>
     <gazebo reference="link_left_wheel">
         <material>Gazebo/Grey</material>
-        <mu1>0.3</mu1>
-        <mu2>0.3</mu2>
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
     </gazebo>
     <gazebo reference="link_right_wheel">
         <material>Gazebo/Grey</material>
-        <mu1>0.3</mu1>
-        <mu2>0.3</mu2>
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
     </gazebo> 
 <!-- Done The robot is a cilinder 50 cm in diameter and 30 cm in height-->
 <!-- Done Has 2 wheels of 5 cm diameter on each side of the base. One at (0.0, -0.2, -0.15) from the base_link and another at (0.0, 0.2, -0.15).-->

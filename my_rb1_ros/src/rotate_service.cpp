@@ -67,7 +67,8 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
   ros::Rate loop_rate(2);
   const double threshold = 0.001;
   if (req.degrees > 360 || req.degrees < -360) {
-    res.result = "Service failed: The range of degree is between -360 to 360";
+    res.result = "/rotate_robot service failure!: The range of degree is "
+                 "between -360 to 360";
   } else {
 
     Radian R_yaw_rad(yaw_rad);
@@ -114,8 +115,9 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
 
     } while (abs(target_yaw_rad_temp) > threshold and
              timeout_counter <= max_timeout_counter);
-    res.result = abs(target_yaw_rad_temp) <= threshold ? "Service Success"
-                                                       : "Service Failed";
+    res.result = abs(target_yaw_rad_temp) <= threshold
+                     ? "/rotate_robot service success"
+                     : "/rotate_robot service failure!: Time out.";
   }
   return true;
 }
