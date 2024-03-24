@@ -45,6 +45,20 @@ struct Radian {
   }
 };
 
+struct NRadian {
+  double _rad; // range -0 to -2pi
+  NRadian(double rad) {
+    if (rad > 0) {
+      int nearest_greater_mulitple_of_round = (-1 * rad) / (2 * pi) - 1;
+      _rad = rad + double(nearest_greater_mulitple_of_round * 2 * pi);
+
+    } else {
+      int nearest_smaller_mulitple_of_round = (1 * rad) / (2 * pi);
+      _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
+    }
+  }
+};
+
 // We define the callback function of the service
 bool my_callback(my_rb1_ros::Rotate::Request &req,
                  my_rb1_ros::Rotate::Response &res) {
@@ -64,32 +78,39 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
     double target_yaw_rad_temp;
     do {
       Radian R_yaw_rad_current(yaw_rad);
-      if (req.degrees > 0 && R_yaw_rad_current._rad > R_req_yaw_rad._rad) {
-        ROS_INFO("Add 2pi to req");
-        R_req_yaw_rad._rad += 2 * pi;
-      }
-      if (req.degrees < 0 && R_yaw_rad_current._rad < R_req_yaw_rad._rad) {
-        ROS_INFO("Remove 2pi from Req");
-        R_req_yaw_rad._rad -= 2 * pi;
+      if (req.degrees > 0) {
+        if (R_yaw_rad_current._rad > R_req_yaw_rad._rad) {
+          ROS_DEBUG("Add 2pi to req");
+          R_req_yaw_rad._rad += 2 * pi;
+        }
+        target_yaw_rad = R_req_yaw_rad - R_yaw_rad_current;
+        Radian R_target_yaw_rad(target_yaw_rad);
+        target_yaw_rad_temp = R_target_yaw_rad._rad;
+      } else {
+        if (R_yaw_rad_current._rad < R_req_yaw_rad._rad) {
+          ROS_DEBUG("Remove 2pi from Req");
+          R_req_yaw_rad._rad -= 2 * pi;
+        }
+        target_yaw_rad = R_req_yaw_rad - R_yaw_rad_current;
+        NRadian R_target_yaw_rad(target_yaw_rad);
+        target_yaw_rad_temp = R_target_yaw_rad._rad;
       }
 
-      target_yaw_rad = R_req_yaw_rad - R_yaw_rad_current;
-      Radian R_target_yaw_rad(target_yaw_rad);
       ling.linear.x = 0;
       ling.linear.y = 0;
       ling.linear.z = 0;
       ling.angular.x = 0;
       ling.angular.y = 0;
-      ling.angular.z = 0.5 * R_target_yaw_rad._rad;
+      ling.angular.z = 0.5 * target_yaw_rad_temp;
 
       pub.publish(ling);
-      ROS_INFO("request=%f.%f target=%f current:%f.%f", R_req_yaw_rad._rad,
-               R_req_yaw_rad._additional_rad, R_target_yaw_rad._rad,
-               R_yaw_rad_current._rad, R_yaw_rad_current._additional_rad);
+      ROS_DEBUG("request=%f.%f target=%f current:%f.%f", R_req_yaw_rad._rad,
+                R_req_yaw_rad._additional_rad, target_yaw_rad_temp,
+                R_yaw_rad_current._rad, R_yaw_rad_current._additional_rad);
       ros::spinOnce();
       loop_rate.sleep();
       timeout_counter++;
-      target_yaw_rad_temp = R_target_yaw_rad._rad;
+
     } while (abs(target_yaw_rad_temp) > threshold and
              timeout_counter <= max_timeout_counter);
     res.result = abs(target_yaw_rad_temp) <= threshold ? "Service Success"
