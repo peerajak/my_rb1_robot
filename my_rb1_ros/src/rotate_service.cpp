@@ -21,14 +21,29 @@ const double pi = 3.14;
 struct Radian {
   double _rad, _additional_rad; // range 0 to 2pi
   double const pi = 3.14;
-  Radian(double rad) : _additional_rad(0) {
-    if (rad < 0) {
-      int nearest_greater_mulitple_of_round = (-1 * rad) / (2 * pi) + 1;
-      _rad = rad + double(nearest_greater_mulitple_of_round) * 2 * pi;
+  Radian(double rad, bool positive_rad = true) : _additional_rad(0) {
 
-    } else {
-      int nearest_smaller_mulitple_of_round = (1 * rad) / (2 * pi);
-      _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
+    if (positive_rad) // the positive_rad == true means keep internal _rad a
+                      // positive number
+    {
+      if (rad < 0) {
+        int nearest_greater_mulitple_of_round = (-1 * rad) / (2 * pi) + 1;
+        _rad = rad + double(nearest_greater_mulitple_of_round) * 2 * pi;
+
+      } else {
+        int nearest_smaller_mulitple_of_round = (1 * rad) / (2 * pi);
+        _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
+      }
+    } else { // the positive_rad == false means keep internal _rad a negative
+             // number
+      if (rad > 0) {
+        int nearest_greater_mulitple_of_round = (-1 * rad) / (2 * pi) - 1;
+        _rad = rad + double(nearest_greater_mulitple_of_round * 2 * pi);
+
+      } else {
+        int nearest_smaller_mulitple_of_round = (1 * rad) / (2 * pi);
+        _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
+      }
     }
   }
 
@@ -42,20 +57,6 @@ struct Radian {
   double operator+(Radian const &obj) {
     _additional_rad = obj._rad;
     return get_position();
-  }
-};
-
-struct NRadian {
-  double _rad; // range -0 to -2pi
-  NRadian(double rad) {
-    if (rad > 0) {
-      int nearest_greater_mulitple_of_round = (-1 * rad) / (2 * pi) - 1;
-      _rad = rad + double(nearest_greater_mulitple_of_round * 2 * pi);
-
-    } else {
-      int nearest_smaller_mulitple_of_round = (1 * rad) / (2 * pi);
-      _rad = rad - double(nearest_smaller_mulitple_of_round) * 2 * pi;
-    }
   }
 };
 
@@ -92,7 +93,7 @@ bool my_callback(my_rb1_ros::Rotate::Request &req,
           R_req_yaw_rad._rad -= 2 * pi;
         }
         target_yaw_rad = R_req_yaw_rad - R_yaw_rad_current;
-        NRadian R_target_yaw_rad(target_yaw_rad);
+        Radian R_target_yaw_rad(target_yaw_rad, false);
         target_yaw_rad_temp = R_target_yaw_rad._rad;
       }
 
